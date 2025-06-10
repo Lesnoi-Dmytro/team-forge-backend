@@ -1,0 +1,227 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserType {
+  ORGINIZER
+  PARTICIPANT
+}
+
+model User {
+  id             Int             @id @default(autoincrement())
+  email          String          @unique @db.VarChar(50)
+  firstName      String          @db.VarChar(30)
+  lastName       String          @db.VarChar(30)
+  password       String          @db.Char(72)
+  image          String?         @db.VarChar(150)
+  userType       UserType
+  organizer      EventOrganizer?
+  participant    Participant?
+  chatMessages   ChatMessage[]
+  chatMembers    ChatMember[]
+  unreadStatuses UnreadStatus[]
+}
+
+model EventOrganizer {
+  id               Int     @id @default(autoincrement())
+  userId           Int     @unique
+  organizationName String? @db.VarChar(30)
+  organizationLink String? @db.VarChar(150)
+  user             User    @relation(fields: [userId], references: [id])
+  events           Event[]
+}
+
+model Participant {
+  id                Int                @id @default(autoincrement())
+  userId            Int                @unique
+  country           String             @db.VarChar(50)
+  region            String?            @db.VarChar(50)
+  city              String             @db.VarChar(50)
+  githubUrl         String?            @db.Char(150)
+  linkedInUrl       String?            @db.Char(150)
+  user              User               @relation(fields: [userId], references: [id])
+  userDomains       UserDomain[]
+  userSkills        UserSkill[]
+  userFields        UserField[]
+  eventParticipants EventParticipant[]
+  teamMembers       TeamMember[]
+  teamInvitations   TeamInvitation[]
+}
+
+model Domain {
+  id    Int          @id @default(autoincrement())
+  name  String       @db.VarChar(30)
+  users UserDomain[]
+}
+
+model UserDomain {
+  id            Int         @id @default(autoincrement())
+  participantId Int
+  domainId      Int
+  participant   Participant @relation(fields: [participantId], references: [id])
+  domain        Domain      @relation(fields: [domainId], references: [id])
+}
+
+model Skill {
+  id    Int         @id @default(autoincrement())
+  name  String      @db.VarChar(30)
+  users UserSkill[]
+}
+
+model UserSkill {
+  id            Int         @id @default(autoincrement())
+  participantId Int
+  skillId       Int
+  participant   Participant @relation(fields: [participantId], references: [id])
+  skill         Skill       @relation(fields: [skillId], references: [id])
+}
+
+model Field {
+  id     Int          @id @default(autoincrement())
+  name   String       @db.VarChar(30)
+  users  UserField[]
+  events EventField[]
+}
+
+model UserField {
+  id            Int         @id @default(autoincrement())
+  participantId Int
+  fieldId       Int
+  participant   Participant @relation(fields: [participantId], references: [id])
+  field         Field       @relation(fields: [fieldId], references: [id])
+}
+
+model Event {
+  id                  Int                @id @default(autoincrement())
+  name                String             @db.VarChar(50)
+  link                String             @db.VarChar(150)
+  prize               Decimal?           @db.Money
+  country             String             @db.VarChar(50)
+  region              String?            @db.VarChar(50)
+  city                String             @db.VarChar(50)
+  startDate           DateTime
+  endDate             DateTime
+  endRegistrationDate DateTime
+  minTeamSize         Int                @default(0)
+  maxTeamSize         Int                @default(5)
+  maxParticipants     Int?
+  online              Boolean?
+  createdBy           Int
+  organizer           EventOrganizer     @relation(fields: [createdBy], references: [id])
+  eventFields         EventField[]
+  participants        EventParticipant[]
+  teams               Team[]
+  winners             EventWinner[]
+}
+
+model EventField {
+  id      Int   @id @default(autoincrement())
+  eventId Int
+  fieldId Int
+  event   Event @relation(fields: [eventId], references: [id])
+  field   Field @relation(fields: [fieldId], references: [id])
+}
+
+model EventParticipant {
+  id            Int         @id @default(autoincrement())
+  eventId       Int
+  participantId Int
+  registredAt   DateTime    @default(now())
+  event         Event       @relation(fields: [eventId], references: [id])
+  participant   Participant @relation(fields: [participantId], references: [id])
+}
+
+model Team {
+  id          Int              @id @default(autoincrement())
+  eventId     Int
+  size        Int
+  name        String           @db.VarChar(50)
+  description String?
+  event       Event            @relation(fields: [eventId], references: [id])
+  members     TeamMember[]
+  invitations TeamInvitation[]
+  winners     EventWinner[]
+}
+
+model TeamMember {
+  id            Int         @id @default(autoincrement())
+  teamId        Int
+  participantId Int
+  team          Team        @relation(fields: [teamId], references: [id])
+  participant   Participant @relation(fields: [participantId], references: [id])
+}
+
+model TeamInvitation {
+  id            Int         @id @default(autoincrement())
+  teamId        Int
+  participantId Int
+  teamInvited   Boolean
+  accepted      Boolean?
+  team          Team        @relation(fields: [teamId], references: [id])
+  participant   Participant @relation(fields: [participantId], references: [id])
+}
+
+model EventWinner {
+  id      Int   @id @default(autoincrement())
+  eventId Int
+  teamtId Int
+  place   Int?
+  event   Event @relation(fields: [eventId], references: [id])
+  team    Team  @relation(fields: [teamtId], references: [id])
+}
+
+model Chat {
+  id         Int           @id @default(autoincrement())
+  name       String?       @db.VarChar(30)
+  individual Boolean
+  members    ChatMember[]
+  messages   ChatMessage[]
+}
+
+model ChatMember {
+  id     Int  @id @default(autoincrement())
+  chatId Int
+  userId Int
+  chat   Chat @relation(fields: [chatId], references: [id])
+  user   User @relation(fields: [userId], references: [id])
+}
+
+model ChatMessage {
+  id      Int            @id @default(autoincrement())
+  chatId  Int
+  userId  Int
+  message String?
+  sentAt  DateTime       @default(now())
+  chat    Chat           @relation(fields: [chatId], references: [id])
+  user    User           @relation(fields: [userId], references: [id])
+  unread  UnreadStatus[]
+  files   MessageFile[]
+}
+
+model UnreadStatus {
+  id        Int         @id @default(autoincrement())
+  messageId Int
+  userId    Int
+  message   ChatMessage @relation(fields: [messageId], references: [id])
+  user      User        @relation(fields: [userId], references: [id])
+}
+
+model MessageFile {
+  id        Int         @id @default(autoincrement())
+  messageId Int
+  filePath  String      @db.VarChar(150)
+  fileMeta  String      @db.VarChar(30)
+  message   ChatMessage @relation(fields: [messageId], references: [id])
+}
