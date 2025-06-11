@@ -24,7 +24,7 @@ model User {
   email          String          @unique @db.VarChar(50)
   firstName      String          @db.VarChar(30)
   lastName       String          @db.VarChar(30)
-  password       String          @db.Char(72)
+  password       String          @db.Char(60)
   image          String?         @db.VarChar(150)
   userType       UserType
   organizer      EventOrganizer?
@@ -52,55 +52,43 @@ model Participant {
   githubUrl         String?            @db.Char(150)
   linkedInUrl       String?            @db.Char(150)
   user              User               @relation(fields: [userId], references: [id])
-  userDomains       UserDomain[]
-  userSkills        UserSkill[]
-  userFields        UserField[]
+  userDomains       Domain[]           @relation("UserDomain")
+  skills            Skill[]            @relation("UserSkill")
+  userFields        Field[]            @relation("UserField")
   eventParticipants EventParticipant[]
   teamMembers       TeamMember[]
   teamInvitations   TeamInvitation[]
 }
 
 model Domain {
-  id    Int          @id @default(autoincrement())
-  name  String       @db.VarChar(30)
-  users UserDomain[]
+  id    Int           @id @default(autoincrement())
+  name  String        @db.VarChar(30)
+  users Participant[] @relation("UserDomain")
 }
 
 model UserDomain {
-  id            Int         @id @default(autoincrement())
+  id            Int @id @default(autoincrement())
   participantId Int
   domainId      Int
-  participant   Participant @relation(fields: [participantId], references: [id])
-  domain        Domain      @relation(fields: [domainId], references: [id])
 }
 
 model Skill {
-  id    Int         @id @default(autoincrement())
-  name  String      @db.VarChar(30)
-  users UserSkill[]
-}
-
-model UserSkill {
-  id            Int         @id @default(autoincrement())
-  participantId Int
-  skillId       Int
-  participant   Participant @relation(fields: [participantId], references: [id])
-  skill         Skill       @relation(fields: [skillId], references: [id])
+  id    Int           @id @default(autoincrement())
+  name  String        @db.VarChar(30)
+  users Participant[] @relation("UserSkill")
 }
 
 model Field {
-  id     Int          @id @default(autoincrement())
-  name   String       @db.VarChar(30)
-  users  UserField[]
-  events EventField[]
+  id     Int           @id @default(autoincrement())
+  name   String        @db.VarChar(30)
+  users  Participant[] @relation("UserField")
+  events Event[]       @relation("EventField")
 }
 
 model UserField {
-  id            Int         @id @default(autoincrement())
+  id            Int @id @default(autoincrement())
   participantId Int
   fieldId       Int
-  participant   Participant @relation(fields: [participantId], references: [id])
-  field         Field       @relation(fields: [fieldId], references: [id])
 }
 
 model Event {
@@ -120,18 +108,16 @@ model Event {
   online              Boolean?
   createdBy           Int
   organizer           EventOrganizer     @relation(fields: [createdBy], references: [id])
-  eventFields         EventField[]
+  eventFields         Field[]            @relation("EventField")
   participants        EventParticipant[]
   teams               Team[]
   winners             EventWinner[]
 }
 
 model EventField {
-  id      Int   @id @default(autoincrement())
+  id      Int @id @default(autoincrement())
   eventId Int
   fieldId Int
-  event   Event @relation(fields: [eventId], references: [id])
-  field   Field @relation(fields: [fieldId], references: [id])
 }
 
 model EventParticipant {

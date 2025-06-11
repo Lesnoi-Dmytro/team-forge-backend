@@ -1,7 +1,6 @@
+import type { User } from 'generated/prisma';
+
 export interface AuthResponse {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
+  user: User;
   token: string;
 }

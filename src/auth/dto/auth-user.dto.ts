@@ -7,12 +7,9 @@ export default interface JWTUser {
   email: string;
 }
 
-export interface CreateUserRequest {
+export interface SignInRequest {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
-  userType: UserType;
 }
 
 export interface CreateUserRequest {
@@ -23,7 +20,7 @@ export interface CreateUserRequest {
   userType: UserType;
 }
 
-export interface CompletePartipantSignIn {
+export interface CompletePartipantSignUp {
   id: number;
   country: string;
   region: string;
@@ -35,7 +32,7 @@ export interface CompletePartipantSignIn {
   fields: number[];
 }
 
-export interface CompleteOrginizerSignIn {
+export interface CompleteOrginizerSignUp {
   organizationName?: string;
   organizationLink?: string;
 }
