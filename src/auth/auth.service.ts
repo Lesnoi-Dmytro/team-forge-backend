@@ -38,6 +38,10 @@ export class AuthService {
       where: {
         email: creadentials.email,
       },
+      include: {
+        participant: true,
+        organizer: true,
+      },
     });
 
     if (
@@ -89,6 +93,7 @@ export class AuthService {
       },
       include: {
         participant: true,
+        organizer: true,
       },
     });
 
@@ -109,6 +114,7 @@ export class AuthService {
         },
       },
       include: {
+        participant: true,
         organizer: true,
       },
     });
@@ -118,7 +124,7 @@ export class AuthService {
 
   private async generateAuthResponse(user: User): Promise<AuthResponse> {
     return {
-      user: user,
+      user,
       token: await this.generateToken(user),
     };
   }

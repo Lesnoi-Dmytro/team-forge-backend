@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { SkillsModule } from './skills/skills.module';
 import { DomainsModule } from './domains/domains.module';
 import { FieldsModule } from './fields/fields.module';
+import { EventsModule } from './events/events.module';
 
 @Global()
 @Module({
@@ -16,6 +17,7 @@ import { FieldsModule } from './fields/fields.module';
     SkillsModule,
     DomainsModule,
     FieldsModule,
+    EventsModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
